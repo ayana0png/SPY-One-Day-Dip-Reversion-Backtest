@@ -1,16 +1,12 @@
 # SPY One-Day Dip-Reversion Backtest
-#
-# Research question:
-# After SPY falls more than 2% in one session while remaining above its
-# 200-day moving average, does it tend to rebound during the next session?
+# Research question: After SPY falls over 2% in one session while staying above its
+# 200-day moving average does it tend to rebound during the next session?
 #
 # Trade timing:
-# 1. Detect the signal after today's close.
-# 2. Enter at the next trading day's open.
-# 3. Exit at that same trading day's close.
-#
-# This is an educational historical study, not financial advice.
-# Results exclude commissions, slippage, taxes, and execution delays.
+# 1. Detect the signal after today's close
+# 2. Enter at the next trading day's open
+# 3. Exit at that same trading day's close
+
 
 import sys
 
@@ -21,10 +17,10 @@ import yfinance as yf
 
 TICKER = "SPY"
 
-# Extra history is needed to calculate the 200-day moving average.
+# extra history is needed to calculate the 200-day moving average.
 DATA_START = "2020-04-01"
 
-# Signals are evaluated beginning on this date.
+# signals are evaluated beginning on this date.
 STRATEGY_START = "2021-04-01"
 
 # yfinance treats the end date as exclusive, so 2026-07-01 includes
@@ -35,7 +31,7 @@ DROP_THRESHOLD = -0.02
 MA_WINDOW = 200
 
 
-# SECTION 1: Download historical data
+# downloading historical data 
 
 print("Downloading SPY data...")
 
@@ -50,7 +46,6 @@ df = yf.download(
 if df.empty:
     raise RuntimeError("No SPY data was downloaded. Check your connection and try again.")
 
-# Current yfinance versions may return multi-level columns.
 if isinstance(df.columns, pd.MultiIndex):
     df.columns = df.columns.get_level_values(0)
 
@@ -65,7 +60,7 @@ if missing_columns:
 df = df[["Open", "Close"]].dropna().copy()
 
 
-# SECTION 2: Calculate daily returns and long-term trend
+# calculating daily returns and long-term trend
 
 df["Daily_Return"] = df["Close"].pct_change(fill_method=None)
 
@@ -75,11 +70,11 @@ df["MA200"] = (
     .mean()
 )
 
-# Remove the earlier warm-up period after calculating the moving average.
+# remove  earlier warm-up after calculating moving average.
 df = df[df.index >= STRATEGY_START].copy()
 
 
-# SECTION 3: Generate signals
+# code to generate signals
 
 # A signal occurs after the market closes when:
 # 1. SPY fell more than 2% that day.
@@ -92,7 +87,7 @@ df["Signal"] = (
 ).astype(int)
 
 
-# SECTION 4: Build the trades table
+# building the trades table
 
 trades = []
 
@@ -106,8 +101,7 @@ for i in range(len(df) - 1):
     signal_close = float(df["Close"].iloc[i])
     ma200 = float(df["MA200"].iloc[i])
 
-    # The signal is known only after the signal day's close.
-    # Therefore, the trade begins at the next session's open.
+    # the signal is known only after the signal day's close therefore the trade begins at the next session's open.
     entry_price = float(df["Open"].iloc[i + 1])
     exit_price = float(df["Close"].iloc[i + 1])
 
@@ -134,7 +128,7 @@ if trades_df.empty:
     sys.exit(0)
 
 
-# SECTION 5: Display and save the trades
+# displaying and saving the trades
 
 print("\n── All Trades ──────────────────────────────────────────")
 print(trades_df.to_string(index=False))
@@ -145,7 +139,7 @@ trades_df.to_csv(
 )
 
 
-# SECTION 6: Calculate summary statistics
+# calculating summary statistics
 
 number_of_trades = len(trades_df)
 win_rate = (trades_df["Trade Return"] > 0).mean()
@@ -154,8 +148,8 @@ median_return = trades_df["Trade Return"].median()
 best_trade = trades_df["Trade Return"].max()
 worst_trade = trades_df["Trade Return"].min()
 
-# This compounds only the recorded trade returns.
-# Capital is assumed to remain unchanged while no trade is active.
+#compounds only the recorded trade returns.
+#capital is assumed to remain unchanged while no trade is active.
 cumulative_return = (
     (1 + trades_df["Trade Return"]).prod() - 1
 )
@@ -175,7 +169,7 @@ print(f"  Worst Trade           : {worst_trade:.2%}")
 print("  Costs and Slippage    : Not included")
 
 
-# SECTION 7: Plot compounded trade returns
+# plotting compounded trade returns
 
 trades_df["Cumulative_Return"] = (
     (1 + trades_df["Trade Return"]).cumprod() - 1
