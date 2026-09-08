@@ -23,7 +23,7 @@ DATA_START = "2020-04-01"
 # signals are evaluated beginning on this date.
 STRATEGY_START = "2021-04-01"
 
-# yfinance treats the end date as exclusive, so 2026-07-01 includes
+# yfinance end date is exclusive so 2026-07-01 includes
 # available trading data through 2026-06-30.
 DATA_END = "2026-07-01"
 
@@ -154,7 +154,7 @@ cumulative_return = (
     (1 + trades_df["Trade Return"]).prod() - 1
 )
 
-print("\n── Summary Statistics ──────────────────────────────────")
+print("\n── Summary Statistics ")
 print(f"  Fixed Study Period    : {STRATEGY_START} to 2026-06-30")
 print(f"  Signal Threshold      : Below {DROP_THRESHOLD:.0%}")
 print(f"  Trend Filter          : Close above {MA_WINDOW}-day MA")
